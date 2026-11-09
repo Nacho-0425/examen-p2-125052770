@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  hadoop:
+    build:
+      context: ./hadoop
+    container_name: hadoop-node
+    volumes:
+      - ./:/workspace
+      - ./ventas_125052770.csv:/data/input/ventas_125052770.csv:ro
+    ports:
+      - "2222:22"
+    networks:
+      - datamart-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - datamart-network
+
+  api:
+    build:
+      context: ./api
+    container_name: fastapi-service
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - datamart-network
+
+volumes:
+  postgres_data:
+
+networks:
+  datamart-network:
+    driver: bridge

@@ -1,0 +1,4 @@
+*.csv
+resultado.txt
+__pycache__/
+.env
